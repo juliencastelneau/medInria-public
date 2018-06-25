@@ -256,7 +256,7 @@ AlgorithmPaintToolBox::AlgorithmPaintToolBox(QWidget *parent ) :
     m_brushSizeSlider = new medIntParameter("Brush Radius (mm)");
     m_brushSizeSlider->setToolTip(tr("Changes the brush radius."));
     m_brushSizeSlider->setValue(4);
-    m_brushSizeSlider->setRange(1, 10);
+    m_brushSizeSlider->setRange(1, 30);
     m_brushSizeSlider->getSlider()->setPageStep(1);
     m_brushSizeSlider->getSlider()->setOrientation(Qt::Horizontal);
     m_brushSizeSlider->hide();
