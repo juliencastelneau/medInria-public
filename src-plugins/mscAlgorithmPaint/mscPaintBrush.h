@@ -2,17 +2,22 @@
 
 #include "mscAlgorithmPaintPluginExport.h"
 
+#include <itkImage.h>
 #include <medAbstractRoi.h>
 
 namespace msc
 {
+
+class mscPaintBrushPrivate;
+
+typedef itk::Image <unsigned char, 2>              Mask2dType;
 
 class MSCALGORITHMPAINT_EXPORT mscPaintBrush : public medAbstractRoi
 {
     Q_OBJECT
 
 public:
-    mscPaintBrush(medAbstractRoi* parent = nullptr);
+    mscPaintBrush(Mask2dType::Pointer slice, int id, medAbstractRoi* parent = nullptr);
 
     void Off() override;
 
@@ -46,6 +51,10 @@ public:
 
     QList<medAbstractRoi *> *interpolate(medAbstractRoi *roi) override;
 
+    int getIdSlice();
+    Mask2dType::Pointer getSlice();
+private:
+    mscPaintBrushPrivate* d;
 };
 }
 

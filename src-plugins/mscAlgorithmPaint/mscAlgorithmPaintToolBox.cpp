@@ -12,8 +12,12 @@
 #include <medAbstractDataFactory.h>
 #include <medAbstractImageData.h>
 #include <medAbstractImageView.h>
+#include <medAbstractInteractor.h>
+#include <medAbstractLayeredView.h>
+#include <medAbstractParameter.h>
 #include <medAbstractProcess.h>
 #include <medDataManager.h>
+#include <medMetaDataKeys.h>
 #include <medMessageController.h>
 #include <medPluginManager.h>
 #include <medSelectorToolBox.h>
@@ -356,7 +360,7 @@ AlgorithmPaintToolBox::AlgorithmPaintToolBox(QWidget *parent ) :
 
     m_strokeLabelSpinBox = new QSpinBox();
     m_strokeLabelSpinBox->setToolTip(tr("Changes the painted label."));
-    m_strokeLabelSpinBox->setValue(1);
+    m_strokeLabelSpinBox->setValue(3);
     m_strokeLabelSpinBox->setMinimum(1);
     m_strokeLabelSpinBox->setMaximum(24);
     m_strokeLabelSpinBox->hide();
@@ -369,6 +373,7 @@ AlgorithmPaintToolBox::AlgorithmPaintToolBox(QWidget *parent ) :
     m_labelColorWidget->setText("");
     m_labelColorWidget->hide();
     connect(m_labelColorWidget, SIGNAL(clicked()), this, SLOT(setLabelColor()));
+    setLabel(3);
 
     m_colorLabel = new QLabel(tr("Label:"));
     m_colorLabel->hide();
@@ -1199,7 +1204,21 @@ void AlgorithmPaintToolBox::updateStroke(ClickAndMoveEventFilter * filter, medAb
 
     if(!view->contains(m_maskAnnotationData))
     {
+        m_maskAnnotationData->setMetaData("SeriesDescription", "mask");
         view->addLayer(m_maskAnnotationData);
+        foreach (medAbstractInteractor* interactor, view->layerInteractors(getWorkspace()->getSelectedLayerIndices()[0]))
+        {
+            if (interactor->identifier() == "medAnnotationInteractor")
+            {
+                foreach (medAbstractParameter* parameter, interactor->linkableParameters())
+                {
+                    if (parameter->name() == "Opacity")
+                    {
+                        qobject_cast<medDoubleParameter*>(parameter)->setValue(0.15);
+                    }
+                }
+            }
+        }
 
         // Update Mouse Interaction ToolBox
         view->setCurrentLayer(0);
@@ -1339,16 +1358,16 @@ void AlgorithmPaintToolBox::undo()
     region.SetSize(size);
     region.SetIndex(index2d);
 
-    QList<SlicePair> list;
+    QList<mscPaintBrush> list;
     for(int i = 0;i<previousState.first.length();i++)
     {
-        unsigned int idSlice = previousState.first[i].second;
+        unsigned int idSlice = previousState.first[i].getIdSlice();
         Mask2dType::Pointer currentSlice = Mask2dType::New();
         currentSlice->SetRegions(region);
         currentSlice->Allocate();
         copySliceFromMask3D(currentSlice,planeIndex,direction,idSlice);
-        pasteSliceToMask3D(previousState.first[i].first,previousState.second,direction,idSlice);
-        list.append(SlicePair(currentSlice,idSlice));
+        pasteSliceToMask3D(previousState.first[i].getSlice(), previousState.second,direction,idSlice);
+        list.append(mscPaintBrush(currentSlice, idSlice));
     }
     PairListSlicePlaneId currentState = PairListSlicePlaneId(list,planeIndex);
     redo_stack->append(currentState);
@@ -1403,16 +1422,16 @@ void AlgorithmPaintToolBox::redo()
     region.SetSize(size);
     region.SetIndex(index2d);
 
-    QList<SlicePair> list;
+    QList<mscPaintBrush> list;
     for(int i = 0;i<nextState.first.length();i++)
     {
-        unsigned int idSlice = nextState.first[i].second;
+        unsigned int idSlice = nextState.first[i].getIdSlice();
         Mask2dType::Pointer currentSlice = Mask2dType::New();
         currentSlice->SetRegions(region);
         currentSlice->Allocate();
         copySliceFromMask3D(currentSlice,planeIndex,direction,idSlice);
-        pasteSliceToMask3D(nextState.first[i].first,nextState.second,direction,idSlice);
-        list.append(SlicePair(currentSlice,idSlice));
+        pasteSliceToMask3D(nextState.first[i].getSlice(),nextState.second,direction,idSlice);
+        list.append(mscPaintBrush(currentSlice, idSlice));
     }
     PairListSlicePlaneId currentState = PairListSlicePlaneId(list,planeIndex);
     undo_stack->append(currentState);
@@ -1459,7 +1478,7 @@ void AlgorithmPaintToolBox::addSliceToStack(medAbstractView * view,const unsigne
     region.SetIndex(index2d);
 
 
-    QList<SlicePair> list;
+    QList<mscPaintBrush> list;
     for(int i = 0;i<listIdSlice.length();i++)
     {
         unsigned int idSlice = listIdSlice[i];
@@ -1467,7 +1486,7 @@ void AlgorithmPaintToolBox::addSliceToStack(medAbstractView * view,const unsigne
         currentSlice->SetRegions(region);
         currentSlice->Allocate();
         copySliceFromMask3D(currentSlice,planeIndex,direction,idSlice);
-        list.append(SlicePair(currentSlice,idSlice));
+        list.append(mscPaintBrush(currentSlice, idSlice));
     }
 
     m_undoStacks->value(view)->append(PairListSlicePlaneId(list,planeIndex));

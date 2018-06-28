@@ -5,11 +5,34 @@
 namespace msc
 {
 
-mscPaintBrush::mscPaintBrush(medAbstractRoi* parent)
-
+class mscPaintBrushPrivate
 {
+public:
+    ~mscPaintBrushPrivate()
+    {
 
+    }
 
+    Mask2dType::Pointer slice;
+    int id;
+};
+
+mscPaintBrush::mscPaintBrush(Mask2dType::Pointer slice, int id, medAbstractRoi* parent)
+    : medAbstractRoi(parent),
+      d(new mscPaintBrushPrivate)
+{
+    d->id = id;
+    d->slice = slice;
+}
+
+int mscPaintBrush::getIdSlice()
+{
+    return d->id;
+}
+
+Mask2dType::Pointer mscPaintBrush::getSlice()
+{
+    return d->slice;
 }
 
 void mscPaintBrush::Off()

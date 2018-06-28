@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mscAlgorithmPaintPluginExport.h"
+#include "mscPaintBrush.h"
 
 #include <medAbstractData.h>
 #include <medDoubleParameter.h>
@@ -52,8 +53,7 @@ class MSCALGORITHMPAINT_EXPORT AlgorithmPaintToolBox : public medAbstractSelecta
                           "Use paint and region growing tools",<<"Segmentation")
 public:
 
-    typedef QPair<Mask2dType::Pointer,unsigned int> SlicePair;
-    typedef QPair<QList<SlicePair>,unsigned char> PairListSlicePlaneId;
+    typedef QPair<QList<mscPaintBrush>,unsigned char> PairListSlicePlaneId;
 
     AlgorithmPaintToolBox( QWidget *parent );
     ~AlgorithmPaintToolBox();
