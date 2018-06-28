@@ -19,6 +19,8 @@ class MSCALGORITHMPAINT_EXPORT mscPaintBrush : public medAbstractRoi
 public:
     mscPaintBrush(Mask2dType::Pointer slice, int id, medAbstractRoi* parent = nullptr);
 
+    virtual ~mscPaintBrush();
+
     void Off() override;
 
     void On() override;
