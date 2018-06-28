@@ -10,7 +10,6 @@ class mscPaintBrushPrivate
 public:
     ~mscPaintBrushPrivate()
     {
-
     }
 
     Mask2dType::Pointer slice;
@@ -23,6 +22,12 @@ mscPaintBrush::mscPaintBrush(Mask2dType::Pointer slice, int id, medAbstractRoi* 
 {
     d->id = id;
     d->slice = slice;
+}
+
+mscPaintBrush::~mscPaintBrush()
+{
+    delete d;
+    d = nullptr;
 }
 
 int mscPaintBrush::getIdSlice()
