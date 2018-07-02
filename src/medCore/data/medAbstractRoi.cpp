@@ -7,6 +7,7 @@ public:
     unsigned int idSlice;
     bool isSelected;
     RoiStatistics stats;
+    bool isMaster; //true when the ROI is new or has been modified (for interpolation)
 };
 
 medAbstractRoi::medAbstractRoi( dtkAbstractObject *parent )
@@ -61,4 +62,15 @@ void medAbstractRoi::unselect()
 void medAbstractRoi::setRoiStatistics(RoiStatistics s)
 {
     d->stats = s;
+}
+
+void medAbstractRoi::setMasterRoi(bool value)
+{
+    d->isMaster = value;
+    setRightColor();
+}
+
+bool medAbstractRoi::isMasterRoi() const
+{
+    return d->isMaster;
 }

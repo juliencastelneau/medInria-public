@@ -52,6 +52,8 @@ public:
     virtual bool canRedo() = 0;
     virtual bool canUndo() = 0;
 
+    void setMasterRoi(bool);
+    bool isMasterRoi() const;
 public slots:
 
     virtual void select();
@@ -68,6 +70,7 @@ signals:
     void stateSaved();
     
 private:
+    virtual void setRightColor() = 0;
     medAbstractRoiPrivate * d;
 };
 
