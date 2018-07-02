@@ -620,9 +620,9 @@ void AlgorithmPaintToolBox::import()
     double threshold = 0.;
     double outputValue = 1.;
     double upper = 1.; // boolean = true
-    thresholdProcess->setParameter(0., 0);
-    thresholdProcess->setParameter(1., 1);
-    thresholdProcess->setParameter(1., 2);
+    thresholdProcess->setParameter(threshold, 0);
+    thresholdProcess->setParameter(outputValue, 1);
+    thresholdProcess->setParameter(upper, 2);
     try
     {
         thresholdProcess->update();
@@ -1550,6 +1550,7 @@ void AlgorithmPaintToolBox::clear()
 
 void AlgorithmPaintToolBox::clearMask()
 {
+    sliceList.clear();
     if ( m_maskData && m_itkMask )
     {
         m_itkMask->FillBuffer( MaskPixelValues::Unset );
@@ -1576,10 +1577,14 @@ void AlgorithmPaintToolBox::clearMask()
     if (m_undoStacks->value(currentView))
     {
         m_undoStacks->value(currentView)->clear();
-        m_redoStacks->value(currentView)->clear();
         m_undoStacks->remove(currentView);
+    }
+    if (m_redoStacks->value(currentView))
+    {
+        m_redoStacks->value(currentView)->clear();
         m_redoStacks->remove(currentView);
     }
+
     showButtons(false);
     resetToolbox();
 }
@@ -1723,7 +1728,6 @@ void AlgorithmPaintToolBox::copySliceMask()
 
     m_copy.first->SetRegions(region);
     m_copy.first->Allocate();
-
     copySliceFromMask3D(m_copy.first,planeIndex,direction,slice);
 
     m_copy.second = planeIndex;
@@ -1734,7 +1738,6 @@ void AlgorithmPaintToolBox::pasteSliceMask()
 {
    if (!viewCopied || !currentView || currentView!=viewCopied || !m_copy.first || m_copy.second==-1)  // TODO add message No copy in buffer // TODO ADD MESSAGE NO CURRENT VIEW DEFINED FOR THE SEGEMENTAION TOOLBOX
         return;
-
     MaskType::IndexType index3D;
     QVector3D vec = currentView->mapDisplayToWorldCoordinates(QPointF(0,0));
     bool isInside;
