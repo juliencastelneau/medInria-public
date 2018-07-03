@@ -55,10 +55,6 @@ public:
 
     Mask2dType::Pointer getSlice();
 
-    void updateMask(Mask2dType::Pointer updatedSlice);
-
-    void setSlice(Mask2dType::Pointer slice);
-
 private:
     mscPaintBrushPrivate* d;
     virtual void setRightColor() override;

@@ -60,7 +60,7 @@ public:
 
     typedef std::set<dtkSmartPointer<mscPaintBrush>, PaintBrushObjComparator> PaintBrushSet;
     typedef QPair<PaintBrushSet,unsigned char> PairListSlicePlaneId;
-    PaintBrushSet sliceList;
+    PaintBrushSet setOfPaintBrushRois;
 
     AlgorithmPaintToolBox( QWidget *parent );
     ~AlgorithmPaintToolBox();
@@ -154,8 +154,10 @@ protected:
 
     char computePlaneIndex(const QVector3D &,MaskType::IndexType & ,bool& isInside);
 
-    void copySliceFromMask3D(itk::Image<unsigned char,2>::Pointer copy,const char planeIndex,const char * direction,const unsigned int slice);
-    void pasteSliceToMask3D(itk::Image<unsigned char,2>::Pointer image2D,const char planeIndex,const char * direction,const unsigned int slice);
+    void copySliceFromMask3D(itk::Image<unsigned char,2>::Pointer copy,const char planeIndex,
+                             const char * direction,const unsigned int slice, bool becomesAMasterOne = true);
+    void pasteSliceToMask3D(itk::Image<unsigned char,2>::Pointer image2D, const char planeIndex,
+                            const char * direction, const unsigned int slice, bool becomesAMasterOne = true);
 
     void addViewEventFilter(medViewEventFilter * filter );
 
@@ -233,6 +235,8 @@ private:
     double m_sampleSpacing[2];
 
     PaintState::E m_paintState;
+
+    medIntParameter* slicingParameter;
 };
 
 }
