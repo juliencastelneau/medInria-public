@@ -41,23 +41,6 @@ Mask2dType::Pointer mscPaintBrush::getSlice()
     return d->slice;
 }
 
-void mscPaintBrush::setSlice(Mask2dType::Pointer slice)
-{
-    d->slice = slice;
-}
-
-void mscPaintBrush::updateMask(Mask2dType::Pointer updatedSlice)
-{
-    typedef itk::AddImageFilter <Mask2dType, Mask2dType>
-      AddImageFilterType;
-
-    AddImageFilterType::Pointer addFilter = AddImageFilterType::New ();
-    addFilter->SetInput1(d->slice);
-    addFilter->SetInput2(updatedSlice);
-    addFilter->Update();
-    d->slice = nullptr;
-    d->slice = addFilter->GetOutput();
-}
 
 void mscPaintBrush::setRightColor()
 {
