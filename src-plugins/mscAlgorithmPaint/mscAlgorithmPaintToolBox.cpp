@@ -4,6 +4,7 @@
 
 #include <itkConnectedThresholdImageFilter.h>
 #include <itkDanielssonDistanceMapImageFilter.h>
+#include <itkExceptionObject.h>
 #include <itkExtractImageFilter.h>
 #include <itkImageLinearIteratorWithIndex.h>
 #include <itkImageSliceIteratorWithIndex.h>
@@ -463,8 +464,10 @@ medAbstractData* AlgorithmPaintToolBox::processOutput()
     // Check if painted data on the volume
     if (!m_undoStacks->empty() && !m_undoStacks->value(currentView)->isEmpty())
     {
-        copyMetaData(m_maskData, m_imageData);
-        return m_maskData; // return output data
+        // Generate a mask with pixel value = 1
+        dtkSmartPointer <medAbstractData> thresholdMask = applyThresholdToMask(m_maskData);
+        copyMetaData(thresholdMask, m_imageData);
+        return thresholdMask; // return output data
     }
     else
     {
@@ -608,16 +611,20 @@ void AlgorithmPaintToolBox::copyMetaData(medAbstractData* output,
     medUtilities::setDerivedMetaData(output, input, "painted");
 }
 
-void AlgorithmPaintToolBox::import()
+dtkSmartPointer<medAbstractData> AlgorithmPaintToolBox::applyThresholdToMask(medAbstractData* inpuMask)
 {
-    // import a copy of the mask
-    medAbstractData* output = dynamic_cast<medAbstractData*>(m_maskData->clone());
+    dtkSmartPointer <medAbstractProcess> thresholdProcess;
+    try
+    {
+        thresholdProcess = dtkAbstractProcessFactory::instance()->createSmartPointer ( "itkThresholdingProcess" );
+    }
+    catch( itk::ExceptionObject &err )
+    {
+        qDebug() << err.GetDescription();
+        return nullptr;
+    }
 
-    // Generate a mask with pixel value = 1
-    dtkSmartPointer <medAbstractProcess> thresholdProcess = dtkAbstractProcessFactory::instance()->createSmartPointer ( "itkThresholdingProcess" );
-    if (!thresholdProcess)
-        return;
-    thresholdProcess->setInput(output);
+    thresholdProcess->setInput(inpuMask);
     double threshold = 0.;
     double outputValue = 1.;
     double upper = 1.; // boolean = true
@@ -631,12 +638,23 @@ void AlgorithmPaintToolBox::import()
     catch( itk::ExceptionObject &err )
     {
         qDebug() << err.GetDescription();
-        return;
+        return nullptr;
     }
 
-    copyMetaData(thresholdProcess->output(), m_imageData);
+    return thresholdProcess->output();
+}
 
-    medDataManager::instance()->importData(thresholdProcess->output(), false);
+void AlgorithmPaintToolBox::import()
+{
+    // import a copy of the mask
+    medAbstractData* output = dynamic_cast<medAbstractData*>(m_maskData->clone());
+
+    // Generate a mask with pixel value = 1
+    dtkSmartPointer <medAbstractData> thresholdMask = applyThresholdToMask(output);
+
+    copyMetaData(thresholdMask, m_imageData);
+
+    medDataManager::instance()->importData(thresholdMask, false);
 
     maskHasBeenSaved = true;
 }
