@@ -237,6 +237,7 @@ private:
     PaintState::E m_paintState;
 
     medIntParameter* slicingParameter;
+    dtkSmartPointer<medAbstractData> applyThresholdToMask(medAbstractData *inpuMask);
 };
 
 }
