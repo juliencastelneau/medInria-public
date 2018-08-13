@@ -51,6 +51,9 @@ public:
         m_paintState = m_cb->paintState();
         m_cb->m_applyButton->setDisabled(false);
 
+        m_cb->m_addButton->setEnabled(true);
+        m_cb->m_eraseButton->setEnabled(true);
+
         if ( this->m_paintState == PaintState::DeleteStroke )
         {
             m_cb->setPaintState(m_lastPaintState);
@@ -387,6 +390,21 @@ AlgorithmPaintToolBox::AlgorithmPaintToolBox(QWidget *parent ) :
     labelSelectionLayout->addWidget( m_strokeLabelSpinBox );
 
     layout->addLayout( labelSelectionLayout );
+
+    m_addButton = new QPushButton( tr("Add") );
+    m_addButton->setToolTip(tr("Append mask to existing mask."));
+    m_addButton->setObjectName("addButton");
+    m_addButton->setDisabled(true);
+    m_addButton->hide();
+    m_eraseButton = new QPushButton( tr("Erase") );
+    m_eraseButton->setToolTip(tr("Delete mask from existing mask."));
+    m_eraseButton->setObjectName("eraseButton");
+    m_eraseButton->setDisabled(true);
+    m_eraseButton->hide();
+    QHBoxLayout * operationsButtonsLayout = new QHBoxLayout();
+    operationsButtonsLayout->addWidget(m_addButton);
+    operationsButtonsLayout->addWidget(m_eraseButton);
+    layout->addLayout(operationsButtonsLayout);
 
     m_applyButton = new QPushButton( tr("Save") );
     m_applyButton->setToolTip(tr("Save result to the Database"));

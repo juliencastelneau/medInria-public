@@ -197,6 +197,7 @@ private:
     QLabel *m_colorLabel;
     QShortcut *undo_shortcut, *redo_shortcut, *copy_shortcut, *paste_shortcut;
 
+    QPushButton *m_addButton, *m_eraseButton;
     QPushButton *m_applyButton;
 
     QPushButton *m_clearMaskButton;
