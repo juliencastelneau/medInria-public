@@ -19,15 +19,17 @@ public:
 
     Mask2dType::Pointer slice;
     bool isMaster; //true when the ROI is new or has been modified (for interpolation)
+    int label;
 };
 
-mscPaintBrush::mscPaintBrush(Mask2dType::Pointer slice, int id, bool isMaster, medAbstractRoi* parent)
+mscPaintBrush::mscPaintBrush(Mask2dType::Pointer slice, int id, bool isMaster, int label, medAbstractRoi* parent)
     : medAbstractRoi(parent),
       d(new mscPaintBrushPrivate)
 {
     setIdSlice(id);
     d->slice = slice;
     setMasterRoi(isMaster);
+    d->label = label;
 }
 
 mscPaintBrush::~mscPaintBrush()
@@ -125,4 +127,10 @@ QList<medAbstractRoi *> *mscPaintBrush::interpolate(medAbstractRoi *roi)
 {
     return nullptr;
 }
+
+int mscPaintBrush::getLabel()
+{
+    return d->label;
+}
+
 }

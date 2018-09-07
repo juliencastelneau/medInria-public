@@ -83,8 +83,8 @@ public:
 
     Mask2dType::Pointer extract2DImageSlice(MaskType::Pointer input,int plane,int slice,MaskType::SizeType size,MaskType::IndexType start);
     Mask2dFloatType::Pointer computeDistanceMap(Mask2dType::Pointer img);
-    void computeIntermediateSlice(Mask2dFloatType::Pointer distanceMapImg0,Mask2dFloatType::Pointer distanceMapImg1,int slice0,
-                                                              int slice1,int j,MaskFloatIterator ito,MaskIterator itMask,double *vec);
+    void computeIntermediateSlice(Mask2dFloatType::Pointer distanceMapImg0,Mask2dFloatType::Pointer distanceMapImg1,unsigned int slice0,
+                                                              unsigned int slice1,int j,MaskFloatIterator ito,MaskIterator itMask,double *vec);
     void computeCentroid(Mask2dIterator itmask,unsigned int *coord);
     Mask2dType::Pointer translateImageByVec(Mask2dType::Pointer img,int *vec);
 
@@ -116,7 +116,7 @@ public slots:
 
     void undo();
     void redo();
-    void addSliceToStack(medAbstractView * view,const unsigned char planeIndex,QList<int> listIdSlice, bool isMaster = true);
+    void addSliceToStack(medAbstractView * view,const unsigned char planeIndex,QList<unsigned int> listIdSlice, bool isMaster = true);
 
     virtual void clear();
     void clearMask();
@@ -224,12 +224,13 @@ private:
     unsigned int currentPlaneIndex; //plane Index of the current/last operation
     unsigned int currentIdSlice; // current slice;
     bool undoRedoCopyPasteModeOn;
+    unsigned int currentSliceLabel;
 
     template <typename IMAGE> void RunConnectedFilter (MaskType::IndexType &index, unsigned int planeIndex);
     template <typename IMAGE> void GenerateMinMaxValuesFromImage ();
 
-    void interpolateBetween2PaintBrush(int firstSlice, int secondSlice);
-    void deleteSliceFromMask3D(int sliceIndex);
+    void interpolateBetween2PaintBrush(unsigned int firstSlice, unsigned int secondSlice);
+    void deleteSliceFromMask3D(unsigned int sliceIndex);
 
     QVector3D m_lastVup;
     QVector3D m_lastVpn;
@@ -238,7 +239,7 @@ private:
     PaintState::E m_paintState;
 
     medIntParameter* slicingParameter;
-    dtkSmartPointer<medAbstractData> applyThresholdToMask(medAbstractData *inpuMask);
+    void updateMaskWithMasterLabel();
 };
 
 }

@@ -17,7 +17,7 @@ class MSCALGORITHMPAINT_EXPORT mscPaintBrush : public medAbstractRoi
     Q_OBJECT
 
 public:
-    mscPaintBrush(Mask2dType::Pointer slice, int id, bool isMaster, medAbstractRoi* parent = nullptr);
+    mscPaintBrush(Mask2dType::Pointer slice, int id, bool isMaster, int label, medAbstractRoi* parent = nullptr);
 
     virtual ~mscPaintBrush();
 
@@ -55,6 +55,7 @@ public:
 
     Mask2dType::Pointer getSlice();
 
+    int getLabel();
 private:
     mscPaintBrushPrivate* d;
     virtual void setRightColor() override;
