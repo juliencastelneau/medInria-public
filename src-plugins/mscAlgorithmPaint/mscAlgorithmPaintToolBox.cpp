@@ -652,8 +652,6 @@ void AlgorithmPaintToolBox::updateMaskWithMasterLabel()
             advance(it, 1);
             secondSlice = (*it).first;
             secondLabel = (*it).second;
-            qDebug()<<"first slice = "<<firstSlice<<" & label "<<firstLabel;
-            qDebug()<<"second slice = "<<secondSlice<<" & label "<<secondLabel;
             if (firstLabel == secondLabel)
             {
                 masterLabels.push_back(std::make_tuple(firstLabel,firstSlice,secondSlice));
@@ -1192,6 +1190,10 @@ AlgorithmPaintToolBox::GenerateMinMaxValuesFromImage ()
 void AlgorithmPaintToolBox::updateStroke(ClickAndMoveEventFilter * filter, medAbstractImageView * view)
 {
     setCurrentView(currentView);
+    if ( !isMask2dOnSlice() )
+    {
+        return;
+    }
 
     const double radius = m_brushSizeSlider->value(); // in image units.
 
@@ -1332,6 +1334,52 @@ void AlgorithmPaintToolBox::updateStroke(ClickAndMoveEventFilter * filter, medAb
     m_maskAnnotationData->invokeModified();
 }
 
+bool AlgorithmPaintToolBox::isMask2dOnSlice()
+{
+    MaskType::IndexType index3D;
+    QVector3D vector = currentView->mapDisplayToWorldCoordinates(QPointF(0,0));
+    bool isInside;
+    int planeIndex = (int)AlgorithmPaintToolBox::computePlaneIndex(vector,index3D,isInside);
+    MaskType::RegionType inputRegion = m_itkMask->GetLargestPossibleRegion();
+    MaskType::SizeType   size      = inputRegion.GetSize();
+    MaskType::IndexType  start     = inputRegion.GetIndex();
+
+    Mask2dType::Pointer img = Mask2dType::New();
+    img = extract2DImageSlice(m_itkMask, planeIndex, currentIdSlice, size, start);
+    Mask2dIterator iterator(img,img->GetBufferedRegion());
+    iterator.GoToBegin();
+    typename Mask2dType::IndexType index2d;
+
+    while(!iterator.IsAtEnd())
+    {
+        index2d = iterator.GetIndex();
+        if ( img->GetPixel(index2d) == m_strokeLabelSpinBox->value() )
+        {
+            return true;
+        }
+        ++iterator;
+    }
+
+    if (m_paintState==PaintState::DeleteStroke)
+    {
+        if ( slicingParameter )
+        {
+            slicingParameter->getSlider()->removeTick(currentIdSlice);
+            slicingParameter->getSlider()->update();
+        }
+        for (auto& pB : setOfPaintBrushRois)
+        {
+            if (pB->getIdSlice() == currentIdSlice)
+            {
+                setOfPaintBrushRois.erase(pB);
+                break;
+            }
+        }
+        return false;
+    }
+    return true;
+}
+
 void AlgorithmPaintToolBox::showButtons( bool value )
 {
     if (value)
@@ -1470,8 +1518,8 @@ void AlgorithmPaintToolBox::undo()
         Mask2dType::Pointer currentSlice = Mask2dType::New();
         currentSlice->SetRegions(region);
         currentSlice->Allocate();
-        copySliceFromMask3D(currentSlice,planeIndex,direction,idSlice, false);
-        pasteSliceToMask3D(prev->getSlice(),planeIndex,direction,idSlice, false);
+        copySliceFromMask3D(currentSlice, planeIndex, direction, idSlice, false);
+        pasteSliceToMask3D(prev->getSlice(), planeIndex, direction, idSlice, false);
         list.insert(new mscPaintBrush(currentSlice, idSlice, prev->isMasterRoi(), prev->getLabel() ));
         for (auto& pB : setOfPaintBrushRois)
         {
@@ -2031,10 +2079,14 @@ void AlgorithmPaintToolBox::deleteSliceFromMask3D(unsigned int sliceIndex)
         {
             It3d.Set(MaskPixelValues::Unset);
             ++It3d;
-        }
+        }        
         It3d.NextLine();
     }
-
+    if ( slicingParameter )
+    {
+        slicingParameter->getSlider()->removeTick(sliceIndex);
+        slicingParameter->getSlider()->update();
+    }
 }
 
 void AlgorithmPaintToolBox::increaseBrushSize()

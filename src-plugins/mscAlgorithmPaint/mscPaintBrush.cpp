@@ -12,11 +12,6 @@ namespace msc
 class mscPaintBrushPrivate
 {
 public:
-    ~mscPaintBrushPrivate()
-    {
-        slice = nullptr;
-    }
-
     Mask2dType::Pointer slice;
     bool isMaster; //true when the ROI is new or has been modified (for interpolation)
     int label;

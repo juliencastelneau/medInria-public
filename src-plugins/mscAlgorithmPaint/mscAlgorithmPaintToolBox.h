@@ -27,7 +27,10 @@ class ClickAndMoveEventFilter;
 
 struct PaintBrushObjComparator
 {
-    bool operator()(mscPaintBrush* lhs, mscPaintBrush* rhs) const { return lhs->getIdSlice() < rhs->getIdSlice(); }
+    bool operator()(mscPaintBrush* lhs, mscPaintBrush* rhs) const
+    {
+        return lhs->getIdSlice() < rhs->getIdSlice();
+    }
 };
 
 struct PaintState
@@ -240,6 +243,7 @@ private:
 
     medIntParameter* slicingParameter;
     void updateMaskWithMasterLabel();
+    bool isMask2dOnSlice();
 };
 
 }

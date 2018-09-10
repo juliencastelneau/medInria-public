@@ -58,7 +58,7 @@ public:
     int getLabel();
 private:
     mscPaintBrushPrivate* d;
-    virtual void setRightColor() override;
+    void setRightColor();
 
 };
 }
