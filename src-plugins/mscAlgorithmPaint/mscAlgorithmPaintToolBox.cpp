@@ -1653,7 +1653,7 @@ void AlgorithmPaintToolBox::addSliceToStack(medAbstractView *view, const unsigne
 
     PaintBrushSet setOfUndoRois;
     setOfUndoRois.clear();
-    for(unsigned int i = 0;i<listIdSlice.size();i++)
+    for(int i = 0;i<listIdSlice.size();i++)
     {
         unsigned int idSlice = listIdSlice[i];
         for (auto& pB : setOfPaintBrushRois)
