@@ -686,9 +686,8 @@ vtkLookupTable *vtkLookupTableManager::GetChannelnessLookupTable()
 
     for( int i=0; i<256; i++)
     {
-        lut->SetTableValue(i, (double)Channelness[i]/255.0, (double)Channelness[256+i]/255.0, (double)Channelness[256*2+i]/255.0, /*(double)(i)/255.0*/ log (1.0+(double)(i)/255.0*9.0)/log (10.0) );
+        lut->SetTableValue(i, (double)Channelness[i]/255.0, (double)Channelness[256+i]/255.0, (double)Channelness[256*2+i]/255.0, log (1.0+(double)(i)/255.0*9.0)/log (10.0) );
     }
 
     return lut;
-
 }

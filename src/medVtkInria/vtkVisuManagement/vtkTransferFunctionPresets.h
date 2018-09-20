@@ -103,7 +103,7 @@ protected:
   static void GetBinaryMapTransferFunction( vtkColorTransferFunction * rgb,
                                             vtkPiecewiseFunction * alpha );
   static void GetChannelnessTransferFunction( vtkColorTransferFunction * rgb,
-                        vtkPiecewiseFunction * alpha );
+                                              vtkPiecewiseFunction * alpha );
 
   vtkTransferFunctionPresets();
   ~vtkTransferFunctionPresets();
