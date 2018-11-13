@@ -53,7 +53,7 @@ public:
     /** Identifier of the class used to store a specific itk image type, to be used with dtkAbstractDataFactory
      */
     template <typename ImageType> static QString itkDataImageId();
-
+    static QString itkDataImageId(QString type, unsigned int dimension = 3);
 #ifndef SWIG
 
     template <typename TargetClass, typename... OtherArguments>
