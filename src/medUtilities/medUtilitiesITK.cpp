@@ -29,6 +29,21 @@ double medUtilitiesITK::volume(dtkSmartPointer<medAbstractData> data)
     return statsProcess.output().at(0);
 }
 
+void medUtilitiesITK::meanVariance(dtkSmartPointer<medAbstractData> data,
+                                   dtkSmartPointer<medAbstractData> mask,
+                                   double *mean,
+                                   double *variance)
+{
+    statsROI statsProcess;
+    statsProcess.setInput(data, 0);
+    statsProcess.setInput(mask, 1);
+    statsProcess.setParameter(statsROI::MEANVARIANCE);
+    statsProcess.update();
+    *mean = statsProcess.output().at(0);
+    *variance = statsProcess.output().at(1);
+    return;
+}
+
 template <typename ImageType>
 QString medUtilitiesITK::itkDataImageId()
 {
@@ -156,6 +171,7 @@ QString medUtilitiesITK::itkDataImageId(QString type,  unsigned int dimension)
     {
         return "";
     }
+    return "";
 }
 
 template <>
