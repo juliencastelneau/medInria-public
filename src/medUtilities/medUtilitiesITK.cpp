@@ -167,10 +167,6 @@ QString medUtilitiesITK::itkDataImageId(QString type,  unsigned int dimension)
             return itkDataImageId<itk::Image<double, 4> >();
         }
     }
-    else
-    {
-        return "";
-    }
     return "";
 }
 
