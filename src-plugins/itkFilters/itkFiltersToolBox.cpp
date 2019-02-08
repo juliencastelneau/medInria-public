@@ -105,7 +105,7 @@ public:
 
     double minValueImage;
     double maxValueImage;
-
+    QColor minColor, maxColor, thresholdColor;
     medComboBox * filters;
     dtkSmartPointer <itkFiltersProcessBase> process;
 };
@@ -494,6 +494,9 @@ void itkFiltersToolBox::clear()
     d->intensityOutputMaximumValue->setValue (itkFiltersWindowingProcess::defaultMaximumIntensityValue);
 
     d->histogram->setDisabled(true);
+    d->minColor = Qt::white;
+    d->maxColor = Qt::white;
+    d->thresholdColor = Qt::black;
 }
 
 void itkFiltersToolBox::update()
@@ -790,7 +793,8 @@ void itkFiltersToolBox::updateClutEditorValue(int label)
                 return;
         }
         d->clutEditor->getScene()->updateCoordinates();
-        d->clutEditor->getScene()->table()->updateVerticesToDisplay();
+        d->clutEditor->getScene()->table()->finalizeMoveSelection();
+        d->clutEditor->getScene()->table()->triggerVertexSet();
     }
 }
 
@@ -804,46 +808,68 @@ void itkFiltersToolBox::updateClutEditorView()
 
         if ( d->binaryThreshold->isChecked() || d->valueButtonGroup->checkedId()==itkFiltersThresholdingProcess::outsideButtonId )
         {
-            QPointF minVal( d->thresholdLowerValue->value(), vertices.first()->value().y());
+            QPointF minVal( d->thresholdLowerValue->value(), 1.);
             QPointF minCoord = d->clutEditor->getScene()->valueToCoordinate(minVal);
-            QColor minColor = vertices.first()->color();
+            if ( vertices.first()->color() != Qt::black )
+            {
+                d->minColor = vertices.first()->color();
+            }
 
-            QPointF maxVal( d->thresholdUpperValue->value(), vertices.last()->value().y());
+            QPointF maxVal( d->thresholdUpperValue->value(), 1.);
             QPointF maxCoord = d->clutEditor->getScene()->valueToCoordinate(maxVal);
-            QColor maxColor = vertices.last()->color();
+            if (vertices.last()->color() != Qt::black )
+            {
+                d->maxColor = vertices.last()->color();
+            }
 
             d->clutEditor->getScene()->table()->deleteAllVertices();
 
-            d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( minVal, minCoord, minColor, d->clutEditor->getScene()->table()));
-            d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( maxVal, maxCoord, maxColor, d->clutEditor->getScene()->table()));
+            d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( minVal, minCoord, d->minColor, d->clutEditor->getScene()->table()));
+            d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( maxVal, maxCoord, d->maxColor, d->clutEditor->getScene()->table()));
         }
         else
         {
             QPointF minVal( d->minValueImage , vertices.first()->value().y());
             QPointF minCoord = d->clutEditor->getScene()->valueToCoordinate(minVal);
-            QColor minColor = vertices.first()->color();
+            QColor minColor = Qt::white;
 
             QPointF maxVal( d->maxValueImage, vertices.last()->value().y());
             QPointF maxCoord = d->clutEditor->getScene()->valueToCoordinate(maxVal);
-            QColor maxColor = vertices.last()->color();
+            QColor maxColor = Qt::white;
 
             QPointF value( d->thresholdFilterValue->value(), vertices.at(1)->value().y() );
             if ( vertices.size()==2 )
             {
-                value.setY(0.5);
+                value.setY(1.);
 
             }
             QPointF coord = d->clutEditor->getScene()->valueToCoordinate(value);
-            QColor color = vertices.at(1)->color();
 
             d->clutEditor->getScene()->table()->deleteAllVertices();
 
             d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( minVal, minCoord, minColor, d->clutEditor->getScene()->table() ));
             d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( maxVal, maxCoord, maxColor, d->clutEditor->getScene()->table() ));
-            d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( value, coord, color, d->clutEditor->getScene()->table() ));
+            d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( value, coord, d->thresholdColor, d->clutEditor->getScene()->table() ));
+            for (medClutEditorVertex* vertex : vertices)
+            {
+                qDebug()<<vertex->color()<<" "<<vertex->value().x();
+            }
+            connect(d->clutEditor->getScene()->table()->vertices().at(1)->getColorAction(), SIGNAL(triggered()), this, SLOT(setThresholdColor()));
 
             d->clutEditor->invertLUT(d->valueButtonGroup->checkedId()!=itkFiltersThresholdingProcess::upperButtonId);
         }
+    }
+}
+
+void itkFiltersToolBox::setThresholdColor()
+{
+    if ( d->clutEditor->getScene()->table()->vertices().size() == 3 )
+    {
+        d->thresholdColor = d->clutEditor->getScene()->table()->vertices().at(1)->color();
+    }
+    else
+    {
+        d->thresholdColor = Qt::black;
     }
 }
 

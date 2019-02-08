@@ -57,6 +57,7 @@ public slots:
     void updateHistogramView();
     void updateSliders();
     void addVertex();
+    void setThresholdColor();
 
 private slots:
     void updateClutEditorValue(int label);
