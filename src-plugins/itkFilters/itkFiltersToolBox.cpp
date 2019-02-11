@@ -497,6 +497,7 @@ void itkFiltersToolBox::clear()
     d->minColor = Qt::white;
     d->maxColor = Qt::white;
     d->thresholdColor = Qt::black;
+    d->minValueImage = d->maxValueImage = 0.;
 }
 
 void itkFiltersToolBox::update()
@@ -542,7 +543,6 @@ void itkFiltersToolBox::update()
         {
             d->thresholdFilterValue->setValue((d->minValueImage+d->maxValueImage)/2);
         }
-
         d->histogram->setEnabled(true);
         updateHistogramView();
     }
@@ -570,7 +570,6 @@ int itkFiltersToolBox::setupSpinBoxValues(medAbstractData* data)
     }
     else
     {
-
         d->thresholdFilterValue->setValue (  itkFiltersThresholdingProcess::defaultThreshold  );
     }
 
@@ -810,17 +809,9 @@ void itkFiltersToolBox::updateClutEditorView()
         {
             QPointF minVal( d->thresholdLowerValue->value(), 1.);
             QPointF minCoord = d->clutEditor->getScene()->valueToCoordinate(minVal);
-            if ( vertices.first()->color() != Qt::black )
-            {
-                d->minColor = vertices.first()->color();
-            }
 
             QPointF maxVal( d->thresholdUpperValue->value(), 1.);
             QPointF maxCoord = d->clutEditor->getScene()->valueToCoordinate(maxVal);
-            if (vertices.last()->color() != Qt::black )
-            {
-                d->maxColor = vertices.last()->color();
-            }
 
             d->clutEditor->getScene()->table()->deleteAllVertices();
 
@@ -829,11 +820,11 @@ void itkFiltersToolBox::updateClutEditorView()
         }
         else
         {
-            QPointF minVal( d->minValueImage , vertices.first()->value().y());
+            QPointF minVal( d->thresholdLowerValue->value() , vertices.first()->value().y());
             QPointF minCoord = d->clutEditor->getScene()->valueToCoordinate(minVal);
             QColor minColor = Qt::white;
 
-            QPointF maxVal( d->maxValueImage, vertices.last()->value().y());
+            QPointF maxVal( d->thresholdUpperValue->value(), vertices.last()->value().y());
             QPointF maxCoord = d->clutEditor->getScene()->valueToCoordinate(maxVal);
             QColor maxColor = Qt::white;
 
@@ -850,10 +841,7 @@ void itkFiltersToolBox::updateClutEditorView()
             d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( minVal, minCoord, minColor, d->clutEditor->getScene()->table() ));
             d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( maxVal, maxCoord, maxColor, d->clutEditor->getScene()->table() ));
             d->clutEditor->getScene()->table()->addVertex(new medClutEditorVertex( value, coord, d->thresholdColor, d->clutEditor->getScene()->table() ));
-            for (medClutEditorVertex* vertex : vertices)
-            {
-                qDebug()<<vertex->color()<<" "<<vertex->value().x();
-            }
+
             connect(d->clutEditor->getScene()->table()->vertices().at(1)->getColorAction(), SIGNAL(triggered()), this, SLOT(setThresholdColor()));
 
             d->clutEditor->invertLUT(d->valueButtonGroup->checkedId()!=itkFiltersThresholdingProcess::upperButtonId);
@@ -978,7 +966,7 @@ void itkFiltersToolBox::updateSliders()
 
 void itkFiltersToolBox::updateHistogramView()
 {
-    if ( ! selectorToolBox()->data() )
+    if ( ! selectorToolBox() || !(selectorToolBox()->data()) )
     {
         return;
     }
