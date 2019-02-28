@@ -86,4 +86,7 @@ public:
                            double* mean,
                            double* stdDev,
                            int component = 0);
+
+    static medAbstractData *extract3DMeshFrom4DMesh(medAbstractData *data,
+                                             unsigned int indice);
 };

@@ -3,12 +3,16 @@
 
 #include <dtkCore/dtkAbstractProcessFactory.h>
 #include <medAbstractData.h>
+#include <medAbstractDataFactory.h>
 #include <medAbstractProcess.h>
 #include <vtkCellData.h>
 #include <vtkDataArray.h>
 #include <vtkDataSet.h>
 #include <vtkFieldData.h>
 #include <vtkMetaDataSet.h>
+#include <vtkMetaDataSetSequence.h>
+#include <vtkMetaSurfaceMesh.h>
+#include <vtkMetaVolumeMesh.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkRenderer.h>
@@ -165,3 +169,29 @@ bool medUtilitiesVTK::arrayStats(medAbstractData* data,
     return false;
 }
 
+medAbstractData* medUtilitiesVTK::extract3DMeshFrom4DMesh(medAbstractData* data,
+                                              unsigned int indice)
+{
+    QString identifier = data->identifier();
+    if (identifier == "vtkDataMesh4D")
+    {
+        vtkMetaDataSetSequence* metaData = static_cast<vtkMetaDataSetSequence*>(data->data());
+        vtkMetaDataSet* metaDataSet = metaData->GetMetaDataSet(indice);
+        vtkMetaDataSet* outputMetaDataSet = nullptr;
+        if (metaDataSet->GetType()==vtkMetaDataSet::VTK_META_SURFACE_MESH)
+        {
+            outputMetaDataSet = vtkMetaSurfaceMesh::New();
+        }
+        else
+        {
+            outputMetaDataSet = vtkMetaVolumeMesh::New();
+        }
+        outputMetaDataSet->SetDataSet(metaDataSet->GetDataSet());
+
+        medAbstractData* output = medAbstractDataFactory::instance()->create("vtkDataMesh");
+        output->setData(outputMetaDataSet);
+        outputMetaDataSet->Delete();
+        return output;
+    }
+    return nullptr;
+}

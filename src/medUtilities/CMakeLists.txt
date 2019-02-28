@@ -66,6 +66,7 @@ ${${PROJECT_NAME}_CFILES})
 target_link_libraries(${PROJECT_NAME}  
   ${OPENGL_LIBRARIES}
   medCore
+  medVtkInria
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   )
