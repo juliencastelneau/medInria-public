@@ -288,18 +288,18 @@ itkFiltersToolBox::itkFiltersToolBox ( QWidget *parent ) : medAbstractSelectable
     d->thresholdFilterWidget = new QWidget(this);
 
     d->thresholdFilterValue = new medDoubleParameter( tr("Threshold Value"), this);
-    d->thresholdFilterValue->setRange ( -1000000000.0, 1000000000.0);
+    d->thresholdFilterValue->setRange ( std::numeric_limits<double>::lowest() , std::numeric_limits<double>::max() );
     d->thresholdFilterValue->setValue ( itkFiltersThresholdingProcess::defaultThreshold );
     d->thresholdFilterValue->setObjectName("thresholdValue");
 
     d->thresholdLowerValue = new medDoubleParameter( tr("Lower Value"), this);
-    d->thresholdLowerValue->setRange ( -1000000000.0, 1000000000.0 );
+    d->thresholdLowerValue->setRange ( std::numeric_limits<double>::lowest() , std::numeric_limits<double>::max() );
     d->thresholdLowerValue->setValue ( itkFiltersThresholdingProcess::defaultLower );
     d->thresholdLowerValue->setObjectName("lowerValue");
     d->thresholdLowerValue->setDecimals(10);
 
     d->thresholdUpperValue = new medDoubleParameter( tr("Upper Value"), this);
-    d->thresholdUpperValue->setRange ( -1000000000.0, 1000000000.0 );
+    d->thresholdUpperValue->setRange ( std::numeric_limits<double>::lowest() , std::numeric_limits<double>::max() );
     d->thresholdUpperValue->setValue ( itkFiltersThresholdingProcess::defaultUpper );
     d->thresholdUpperValue->setObjectName("upperValue");
     d->thresholdUpperValue->setDecimals(10);
