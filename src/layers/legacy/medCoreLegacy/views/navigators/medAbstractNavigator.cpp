@@ -79,3 +79,27 @@ void medAbstractNavigator::updateWidgets()
 {
 
 }
+
+void medAbstractNavigator::toXMLNode(QDomDocument* doc,QDomElement* currentNode)
+{	currentNode->setAttribute("name",name());
+    currentNode->setAttribute("version",version());
+    QDomElement elmt=doc->createElement("parameters");
+    elmt.setAttribute("number",this->linkableParameters().size());
+    for(int i=0;i<linkableParameters().size();i++)
+    {
+        QDomElement paramNode=doc->createElement("parameter");
+        linkableParameters()[i]->toXMLNode(doc,&paramNode);
+        elmt.appendChild(paramNode);
+    }
+    currentNode->appendChild(elmt);
+}
+
+QString medAbstractNavigator::version() const
+{
+    return "0.0.1";
+}
+
+QString medAbstractNavigator::name() const
+{
+    return "undefined navigator";
+}

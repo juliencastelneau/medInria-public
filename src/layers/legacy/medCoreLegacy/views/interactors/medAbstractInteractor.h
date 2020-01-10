@@ -19,11 +19,13 @@
 
 #include <medAbstractView.h>
 #include <medAbstractData.h>
+#include <medAbstractParameterL.h>
 #include <medImageViewEnum.h>
 
 #include <medCoreLegacyExport.h>
 
-class medAbstractParameterL;
+#include <QtXml/QDomDocument>
+
 class medBoolParameterL;
 
 class medAbstractInteractorPrivate;
@@ -44,6 +46,8 @@ public:
 
 public:
     virtual QString description() const = 0;
+    virtual QString name() const;
+    virtual QString version() const;
 
     virtual void setInputData(medAbstractData *data);
     virtual medAbstractData *inputData() const;
@@ -54,6 +58,8 @@ public:
 
     virtual QList<medAbstractParameterL*> linkableParameters() = 0;
     virtual QList<medBoolParameterL*> mouseInteractionParameters() = 0;
+
+    virtual void toXMLNode(QDomDocument* doc,QDomElement* currentNode);
 
 public slots:
     virtual void updateWidgets();

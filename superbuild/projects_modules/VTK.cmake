@@ -70,6 +70,9 @@ set(cmake_args
   -DModule_vtkRenderingOSPRay:BOOL=${USE_OSPRay}
   -DVTK_QT_VERSION=5
   -DQt5_DIR=${Qt5_DIR}
+  -DVTK_WRAP_PYTHON:BOOL=ON
+  -DVTK_USE_TK:BOOL=OFF
+  -DVTK_INSTALL_NO_PYTHON:BOOL=ON
   )
 
 if(USE_OSPRay)

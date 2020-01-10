@@ -13,6 +13,7 @@
 
 #include <medAbstractLayeredView.h>
 
+#include <QtXml/QDomElement>
 #include <dtkCoreSupport/dtkSmartPointer.h>
 #include <medDataManager.h>
 
@@ -447,6 +448,94 @@ QList<medAbstractParameterL*> medAbstractLayeredView::linkableParameters()
 QList<medAbstractParameterL*> medAbstractLayeredView::linkableParameters(unsigned int layer)
 {
     return interactorsParameters(layer);
+}
+
+void medAbstractLayeredView::write(QString& path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
+        return;
+    QFileInfo fileInfo(file);
+
+    QTextStream out(&file);
+    QDomDocument doc(fileInfo.fileName());
+    QDomElement root = doc.createElement("xml");
+    doc.appendChild(root);
+    QHash<QString,int> usedFilenames;
+    for(unsigned int i=0;i<this->layersCount();i++)
+    {
+
+        //getting a working file extension
+        //1. find suitable writers
+        QList<QString> allWriters = medAbstractDataFactory::instance()->writers();
+        QHash<QString, dtkAbstractDataWriter*> possibleWriters=medDataManager::instance()->getPossibleWriters(layerData(i));
+
+        //2. use these writers to get a suitable file extension
+        QString fileExtension;
+        // we use allWriters as the list of keys to make sure we traverse possibleWriters
+        // in the order specified by the writers priorities.
+        foreach(QString type, allWriters) {
+            if (possibleWriters.contains(type))
+            {
+                QStringList extensionList = possibleWriters[type]->supportedFileExtensions();
+                if(!extensionList.isEmpty())
+                {
+                    fileExtension = extensionList.first();
+                    break;
+                }
+            }
+        }
+        //3.releasing allocated memory
+        qDeleteAll(possibleWriters);
+
+        QDomElement layerDescription = doc.createElement("layer");
+        layerDescription.setAttribute("id",i);
+        //generating filename
+        QString currentFile=layerData(i)->metadata("SeriesDescription")+fileExtension;
+
+        //cleaning filename
+        currentFile=currentFile.replace('/','_').replace('\\','_');
+
+        //if the filename is already in use, make it unique by suffixing a number
+        if(usedFilenames.contains(currentFile))
+        {
+            int suffix=usedFilenames[currentFile]+1;
+            currentFile=currentFile+QString::number(suffix);
+        }
+        else
+        {
+            usedFilenames[currentFile]=1;
+        }
+
+        if(medDataReaderWriter::write(fileInfo.dir().canonicalPath()+"/"+currentFile,layerData(i)))
+            layerDescription.setAttribute("filename",currentFile);
+        else
+            layerDescription.setAttribute("filename","failed to save data");
+
+        //saving navigators
+        QDomElement navigatorsNode=doc.createElement("navigators");
+        for(int j=0;j<navigators().size();j++)
+        {
+            QDomElement currentNavigatorNode = doc.createElement("navigator");
+            navigators()[j]->toXMLNode(&doc,&currentNavigatorNode);
+            navigatorsNode.appendChild(currentNavigatorNode);
+
+        }
+        layerDescription.appendChild(navigatorsNode);
+
+        //saving interactors
+        QDomElement interactorsNode=doc.createElement("interactors");
+        for(int j=0;j<layerInteractors(i).size();j++)
+        {
+            QDomElement currentInteractorNode = doc.createElement("interactor");
+            layerInteractors(i)[j]->toXMLNode(&doc,&currentInteractorNode);
+            interactorsNode.appendChild(currentInteractorNode);
+
+        }
+        layerDescription.appendChild(interactorsNode);
+        root.appendChild(layerDescription);
+    }
+    out << doc.toString();
 }
 
 void medAbstractLayeredView::resetCameraOnLayer(int layer)

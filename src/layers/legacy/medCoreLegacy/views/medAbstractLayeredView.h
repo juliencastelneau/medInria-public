@@ -23,6 +23,8 @@
 #include <medAbstractLayeredViewNavigator.h>
 #include <medAbstractData.h>
 #include <medAbstractInteractor.h>
+#include <medDataReaderWriter.h>
+#include <medAbstractDataFactory.h>
 
 class medAbstractData;
 class medAbstractBoolParameterL;
@@ -64,6 +66,8 @@ public:
 
     virtual QList<medAbstractParameterL*> linkableParameters();
     virtual QList<medAbstractParameterL*> linkableParameters(unsigned int layer);
+
+    virtual void write(QString& path);
 
     virtual void resetCameraOnLayer(int layer);
 

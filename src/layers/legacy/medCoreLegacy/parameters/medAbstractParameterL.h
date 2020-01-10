@@ -20,6 +20,8 @@
 
 #include <medCoreLegacyExport.h>
 
+#include <QtXml/QDomDocument>
+
 class QLabel;
 
 class medAbstractParameterLPrivate;
@@ -47,6 +49,8 @@ public:
     bool match(medAbstractParameterL const *other);
     void show();
     void hide();
+
+    virtual void toXMLNode(QDomDocument* doc,QDomElement* currentNode);
 
     void setToolTip(QString tooltip);
 

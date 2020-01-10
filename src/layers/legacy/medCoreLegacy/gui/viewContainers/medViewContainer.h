@@ -97,6 +97,8 @@ public slots:
 
     void checkIfStillDeserveToLiveContainer();
 
+    QString saveScene();
+
 signals:
     void maximized(QUuid uuid, bool maximized);
     void maximized(bool maximized);
@@ -129,6 +131,9 @@ protected:
     void closeEvent(QCloseEvent * event);
 
     void recomputeStyleSheet();
+
+    void printInConsole(QString message);
+    void displayMessageError(QString message);
 
 protected slots:
     void openFromSystem();

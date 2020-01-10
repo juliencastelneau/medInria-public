@@ -30,6 +30,7 @@
 #include <medDataManager.h>
 #include <medViewFactory.h>
 #include <medAbstractLayeredView.h>
+#include <medMessageController.h>
 #include <medToolBox.h>
 #include <medToolBoxHeader.h>
 #include <medStringListParameterL.h>
@@ -40,6 +41,8 @@
 #include <medAbstractInteractor.h>
 #include <medPoolIndicatorL.h>
 #include <medLayoutChooser.h>
+
+#include <QtXml/QDomElement>
 
 class medViewContainerPrivate
 {
@@ -1016,6 +1019,81 @@ void medViewContainer::addColorIndicator(QColor color, QString description)
 void medViewContainer::removeColorIndicator(QColor color)
 {
     d->poolIndicator->removeColorIndicator(color);
+}
+
+/**
+ * @brief saves the scene in a XML file
+ * Saves views (all layers), and toolboxes parameters
+ * 	expected tree is as follow:
+ *  workingDir (user-defined)
+ * 		|-viewID0
+ * 			|-mapping.xml
+ * 			|-layerID01.xml
+ * 			|-layerID02.xml
+ * 			|-data_file (as saved by the dedicated writer)
+ */
+QString medViewContainer::saveScene()
+{
+    QString dirPath = QFileDialog::getExistingDirectory(this, tr("Open Directory"),"/home",QFileDialog::ShowDirsOnly);
+    QDir workingDir(dirPath);
+    QDomDocument doc("xml");
+    QDomElement root=doc.createElement("scene");
+    doc.appendChild(root);
+
+    QString subDirName;
+
+    medAbstractLayeredView* layeredView=dynamic_cast<medAbstractLayeredView*>(view());
+    if (layeredView)
+    {
+        subDirName="view"+QUuid::createUuid ().toString();
+        if(workingDir.mkdir(subDirName))
+        {
+            workingDir.cd(subDirName);
+            QString generatedPath=workingDir.canonicalPath()+"/mapping.xml";
+            QDomElement layeredViewInfo=doc.createElement("layeredView");
+            layeredViewInfo.setAttribute("path",subDirName+"/mapping.xml");
+            layeredViewInfo.setAttribute("id",layeredView->identifier());
+            root.appendChild(layeredViewInfo);
+
+            layeredView->write(generatedPath);
+            workingDir.cdUp();
+
+            QString generatedGlobalPath=workingDir.canonicalPath()+"/globalMapping.xml";
+
+            QFile file(generatedGlobalPath);
+            if (file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+            {
+                QTextStream out(&file);
+                out << doc.toString();
+                QString path = dirPath + "/" + subDirName;
+                return path;
+            }
+            else
+            {
+                displayMessageError("Couldn't open: " + generatedGlobalPath);
+            }
+        }
+        else
+        {
+            displayMessageError("Failed to create new directory: " + subDirName);
+        }
+    }
+    else
+    {
+        displayMessageError("Scene saving failed");
+    }
+    return "";
+}
+
+void medViewContainer::printInConsole(QString message)
+{
+    qDebug() << Q_FUNC_INFO << ": " << message;
+}
+
+void medViewContainer::displayMessageError(QString message)
+{
+    printInConsole(message);
+    medMessageController::instance()->showError(message,3000);
 }
 
 void medViewContainer::clickHistoAction(bool checked)

@@ -121,6 +121,12 @@ void medAbstractParameterL::blockInternWidgetsSignals(bool block) const
         widget->blockSignals(block);
 }
 
+void medAbstractParameterL::toXMLNode(QDomDocument* doc,QDomElement* currentNode)
+{
+    QDomElement elmt=doc->createElement("name");
+    elmt.appendChild(doc->createTextNode(name()));
+    currentNode->appendChild(elmt);
+}
 
 //--------------------------------------------------------------------------
 //  medAbstractTriggerParameterL

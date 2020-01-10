@@ -45,6 +45,7 @@ public:
 
     void exportData(medAbstractData* data);
     void exportDataToPath(medAbstractData* data, const QString& path, const QString& format = "");
+    void exportDataToPath(QList<medAbstractData *> dataList, const QString &filename, const QString &writer);
 
     QUuid makePersistent(medAbstractData* data);
 

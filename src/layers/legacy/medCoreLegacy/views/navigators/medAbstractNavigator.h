@@ -15,12 +15,14 @@
 
 #include <dtkCoreSupport/dtkAbstractViewNavigator.h>
 
+#include<medAbstractParameterL.h>
 #include <medImageViewEnum.h>
 
 #include <medCoreLegacyExport.h>
 
+#include <QtXml/QDomDocument>
+
 class medAbstractView;
-class medAbstractParameterL;
 class medBoolParameterL;
 
 
@@ -35,12 +37,16 @@ public:
 
 public:
     virtual QString description() const = 0;
+    virtual QString name() const;
+    virtual QString version() const;
 
     QWidget* toolBoxWidget();
     QWidget* toolBarWidget();
 
     virtual QList<medAbstractParameterL*> linkableParameters() = 0;
     virtual QList<medBoolParameterL*> mouseInteractionParameters() = 0;
+
+    virtual void toXMLNode(QDomDocument* doc,QDomElement* currentNode);
 
 protected:
     virtual QWidget* buildToolBoxWidget() = 0;
