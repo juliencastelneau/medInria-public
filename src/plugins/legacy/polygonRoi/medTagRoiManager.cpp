@@ -712,7 +712,9 @@ double medTagRoiManager::getMinimumDistanceFromNodesToMouse(double eventPos[2], 
                     contourRep->GetIntermediatePointDisplayPosition(j, k, contourPos);
                     dist = getDistance(eventPos, contourPos);
                     if ( dist < minDist )
+                    {
                         minDist = dist;
+                    }
                 }
             }
         }
