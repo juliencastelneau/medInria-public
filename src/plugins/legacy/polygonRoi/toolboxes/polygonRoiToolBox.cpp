@@ -351,7 +351,7 @@ void polygonRoiToolBox::resetToolboxBehaviour()
     {
         return;
     }
-    containersInTabSelected[0]->setClosingMode(medViewContainer::CLOSE_CONTAINER);
+    containersInTabSelected[0]->setClosingMode(medViewContainer::CLOSE_VIEW);
     enableTableViewChooser(activateTBButton->isChecked());
 }
 
@@ -507,7 +507,6 @@ void polygonRoiToolBox::updateTableWidgetView(unsigned int row, unsigned int col
     });
     mainContainer->setSelected(true);
     viewEventFilter->enableOtherViewsVisibility(true);
-
     tableViewChooser->setEnabled(false);
 }
 

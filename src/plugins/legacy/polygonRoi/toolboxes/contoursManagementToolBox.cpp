@@ -6,6 +6,7 @@
 #include <medAbstractProcessLegacy.h>
 #include <medContours.h>
 #include <medDataManager.h>
+#include <medSettingsManager.h>
 #include <medTabbedViewContainers.h>
 #include <medToolBoxFactory.h>
 #include <medUtilities.h>
@@ -76,6 +77,17 @@ contoursManagementToolBox::contoursManagementToolBox(QWidget *parent):
     this->addWidget(widget);
 
     connect(specialities, SIGNAL(currentIndexChanged(int)), this, SLOT(showWidgetListForIndex(int)));
+    QVariant oStartupSpeciality = medSettingsManager::instance()->value("startup", "default_polygon_speciality");
+    if (oStartupSpeciality.toString()=="default")
+    {
+        specialities->setCurrentIndex(0);
+        savedSelectedIndex.first = 0;
+    }
+    else if (oStartupSpeciality.toString()=="urology")
+    {
+        specialities->setCurrentIndex(1);
+        savedSelectedIndex.first = 1;
+    }
     connect(minusButton, SIGNAL(pressed()), this, SLOT(removeLabelNameInList()));
     connect(plusButton, SIGNAL(pressed()), this, SLOT(addLabel()));
 }

@@ -46,6 +46,7 @@ public:
     QCheckBox *startInFullScreen;
     QCheckBox *genericWorkspaceEnabled;
     QComboBox *defaultStartingArea;
+    QComboBox *polygonSpeciality;
 
     medStartupSettingsWidgetPrivate();
     ~medStartupSettingsWidgetPrivate();
@@ -85,10 +86,15 @@ medStartupSettingsWidget::medStartupSettingsWidget(QWidget *parent) : medSetting
     {
         d->defaultStartingArea->addItem(detail->name);
     }
+    d->polygonSpeciality = new QComboBox(this);
+    d->polygonSpeciality->addItem(tr("default"));
+    d->polygonSpeciality->addItem(tr("urology"));
+
     QFormLayout *layout = new QFormLayout;
     layout->addRow(tr("Fullscreen"), d->startInFullScreen);
     layout->addRow(tr("Generic workspace enabled"), d->genericWorkspaceEnabled);
     layout->addRow(tr("Starting area"), d->defaultStartingArea);
+    layout->addRow(tr("PolygonROI speciality"), d->polygonSpeciality);
     this->setLayout(layout);
 }
 
@@ -129,6 +135,26 @@ void medStartupSettingsWidget::read()
         d->defaultStartingArea->setCurrentIndex(0);
     }
 
+    //if nothing is configured then Homepage is the default area
+    QString polygonDefaultSpecialityName = mnger->value("startup", "default_polygon_speciality", "default").toString();
+
+    i = 0;
+    bFind = false;
+    while (!bFind && i<d->polygonSpeciality->count())
+    {
+        bFind = polygonDefaultSpecialityName == d->polygonSpeciality->itemText(i);
+        if (!bFind) ++i;
+    }
+
+    if (bFind)
+    {
+        d->polygonSpeciality->setCurrentIndex(i);
+    }
+    else
+    {
+        d->polygonSpeciality->setCurrentIndex(0);
+    }
+
     connect(d->genericWorkspaceEnabled, SIGNAL(stateChanged(int)), this, SLOT(genericWorkspaceState(int)));
 }
 
@@ -138,6 +164,7 @@ bool medStartupSettingsWidget::write()
     mnger->setValue("startup", "fullscreen", d->startInFullScreen->isChecked());
     mnger->setValue("startup", "default_starting_area", d->defaultStartingArea->currentText());
     mnger->setValue("startup", "genericWorkspace", d->genericWorkspaceEnabled->isChecked());
+    mnger->setValue("startup", "default_polygon_speciality", d->polygonSpeciality->currentText() );
 
     return true;
 }

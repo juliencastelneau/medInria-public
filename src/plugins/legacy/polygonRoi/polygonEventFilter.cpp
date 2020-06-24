@@ -255,7 +255,47 @@ bool polygonEventFilter::mouseMoveEvent(medAbstractView *view, QMouseEvent *mous
 bool polygonEventFilter::mousePressEvent(medAbstractView * view, QMouseEvent *mouseEvent)
 {
     if ( ! activateEventFilter )
-        return false;
+    {
+        if (mouseEvent->button()==Qt::RightButton)
+        {
+            //hideManagerInOtherViews(savedMousePosition);
+            QMenu menu = QMenu();
+            QMenu hideManager = QMenu("Hide Label:");
+            for (medTagRoiManager *manager : managers)
+            {
+                QPixmap pixmap(20,20);
+                pixmap.fill(manager->getColor());
+                QAction *action = new QAction(pixmap, manager->getName(), &hideManager);
+                connect(action, &QAction::triggered, [this, manager](){
+                    for (medAbstractImageView * v : otherViews)
+                    {
+                        manager->enableOtherViewVisibility(v, false);
+                    }
+                });
+                hideManager.addAction(action);
+            }
+            QAction showManager = QAction("Show labels");
+            connect(&showManager, &QAction::triggered, [this](){
+                for (medTagRoiManager *mgr : managers)
+                {
+                    for (medAbstractImageView * v : otherViews)
+                    {
+                        mgr->enableOtherViewVisibility(v, true);
+                    }
+                }
+            });
+
+            menu.addMenu(&hideManager);
+            menu.addAction(&showManager);
+            menu.exec(mouseEvent->globalPos());
+
+            return mouseEvent->isAccepted();
+        }
+        else
+        {
+            return false;
+        }
+    }
 
     medAbstractImageView *v = dynamic_cast<medAbstractImageView *> (view);
     if ( !currentView )
@@ -263,7 +303,9 @@ bool polygonEventFilter::mousePressEvent(medAbstractView * view, QMouseEvent *mo
         return false;
     }
     if (currentView != v)
+    {
         return false;
+    }
 
     if (mouseEvent->button()==Qt::LeftButton)
     {
@@ -603,6 +645,7 @@ medTagRoiManager *polygonEventFilter::createManager()
     connect(manager, SIGNAL(enableOtherViewsVisibility(bool)), this, SLOT(enableOtherViewsVisibility(bool)), Qt::UniqueConnection);
     connect(manager, SIGNAL(sendErrorMessage(QString)), this, SIGNAL(sendErrorMessage(QString)), Qt::UniqueConnection);
     activeManager = manager;
+    cursorState = CURSORSTATE::CS_MOUSE_EVENT;
 
     enableActiveManagerIfExists();
     return manager;
@@ -1004,16 +1047,18 @@ void polygonEventFilter::saveAllContours()
         if (manager->getRois().size()!=1 || manager->getRois()[0]->isClosed()==true)
         {
             int label = managers.indexOf(manager);
-
             auto ctr = manager->getContoursAsNodes();
             medTagContours contoursTag;
 
             QString labelName = manager->getName();
-            contoursTag.setLabelName(labelName);
+
             if (manager->hasScore() && manager->getOptName()!=QString())
             {
                 contoursTag.setScore(manager->getOptName());
+                labelName.append(QString(" %1").arg(manager->getOptName()));
             }
+            contoursTag.setLabelName(labelName);
+
             contoursTag.setContourNodes(ctr);
             contoursData.append(contoursTag);
 
@@ -1283,29 +1328,24 @@ void polygonEventFilter::saveMask(medTagRoiManager *manager)
 void polygonEventFilter::saveContour(medTagRoiManager *manager)
 {
     QVector<medTagContours> contoursData;
-    vtkSmartPointer<vtkAppendPolyData> append = vtkSmartPointer<vtkAppendPolyData>::New();
-    append->SetUserManagedInputs(true);
-    append->SetNumberOfInputs(managers.size());
 
     int label = managers.indexOf(manager);
 
     auto ctr = manager->getContoursAsNodes();
     medTagContours contoursTag;
     QString labelName = manager->getName();
-    contoursTag.setLabelName(labelName);
     if (manager->hasScore() && manager->getOptName()!=QString())
     {
         contoursTag.setScore(manager->getOptName());
+        labelName.append(QString(" %1").arg(manager->getOptName()));
     }
+    contoursTag.setLabelName(labelName);
+
     contoursTag.setContourNodes(ctr);
     contoursData.append(contoursTag);
 
     auto pd = manager->getContoursAsPolyData(label);
-    append->SetInputDataByNumber(0, pd);
-
-    append->Update();
     vtkMetaDataSet *outputDataSet = vtkMetaSurfaceMesh::New();
-    outputDataSet->SetDataSet(append->GetOutput());
-
+    outputDataSet->SetDataSet(pd);
     emit saveContours(currentView, outputDataSet, contoursData);
 }

@@ -60,7 +60,6 @@ public:
     void addObserver();
 
     QList<medTagRoiManager*> getManagers(){return managers;}
-
 public slots:
     void enableOtherViewsVisibility(bool state);
     void setCursorState(CURSORSTATE state){cursorState = state;}
