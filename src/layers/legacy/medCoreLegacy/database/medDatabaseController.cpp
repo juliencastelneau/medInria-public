@@ -90,9 +90,9 @@ void medDatabaseControllerPrivate::buildMetaDataLookup()
     metaDataLookup.insert(medMetaDataKeys::SliceThickness.key(),
         TableEntryList() << TableEntry(T_series, "sliceThickness") );
     metaDataLookup.insert(medMetaDataKeys::Rows.key(),
-        TableEntryList() << TableEntry(T_series, "rows") );
+        TableEntryList() << TableEntry(T_series, "`rows`") );
     metaDataLookup.insert(medMetaDataKeys::Columns.key(),
-        TableEntryList() << TableEntry(T_series, "columns") );
+        TableEntryList() << TableEntry(T_series, "`columns`") );
     metaDataLookup.insert(medMetaDataKeys::Age.key(),
         TableEntryList() << TableEntry(T_series, "age") );
     metaDataLookup.insert(medMetaDataKeys::Description.key(),
@@ -148,9 +148,16 @@ bool medDatabaseController::createConnection(void)
 {
     medStorage::mkpath(medStorage::dataLocation() + "/");
 
-    if (this->m_database.databaseName().isEmpty())
-        this->m_database = QSqlDatabase::addDatabase("QSQLITE");
-    this->m_database.setDatabaseName(medStorage::dataLocation() + "/" + "db");
+//    if (this->m_database.databaseName().isEmpty())
+//        this->m_database = QSqlDatabase::addDatabase("QSQLITE");
+//    this->m_database.setDatabaseName(medStorage::dataLocation() + "/" + "db");
+
+    this->m_database = QSqlDatabase::addDatabase("QMYSQL", "mysqldb");
+    this->m_database.setHostName("localhost");
+    this->m_database.setDatabaseName("musicdb");
+    this->m_database.setUserName("music");
+    this->m_database.setPassword("music");
+
 
     if (!m_database.open())
     {
@@ -166,21 +173,21 @@ bool medDatabaseController::createConnection(void)
     if(    !createPatientTable()
         || !createStudyTable()
         || !createSeriesTable()
-        || !updateFromNoVersionToVersion1())
+        )
     {
         return false;
     }
 
     // optimize speed of sqlite db
-    QSqlQuery query(m_database);
-    if (!(query.prepare(QLatin1String("PRAGMA synchronous = 0"))
-          && EXEC_QUERY(query))) {
-        qDebug() << "Could not set sqlite synchronous mode to asynchronous mode.";
-    }
-    if (!(query.prepare(QLatin1String("PRAGMA journal_mode=wal"))
-          && EXEC_QUERY(query))) {
-        qDebug() << "Could not set sqlite write-ahead-log journal mode";
-    }
+//    QSqlQuery query(m_database);
+//    if (!(query.prepare(QLatin1String("PRAGMA synchronous = 0"))
+//          && EXEC_QUERY(query))) {
+//        qDebug() << "Could not set sqlite synchronous mode to asynchronous mode.";
+//    }
+//    if (!(query.prepare(QLatin1String("PRAGMA journal_mode=wal"))
+//          && EXEC_QUERY(query))) {
+//        qDebug() << "Could not set sqlite write-ahead-log journal mode";
+//    }
 
     return true;
 }
@@ -407,7 +414,7 @@ bool medDatabaseController::createStudyTable()
 {
     QSqlQuery query(this->database());
 
-    return query.prepare(
+    bool retVal =  query.prepare(
                 "CREATE TABLE IF NOT EXISTS study ("
                 " id        INTEGER      PRIMARY KEY,"
                 " patient   INTEGER," // FOREIGN KEY
@@ -417,15 +424,19 @@ bool medDatabaseController::createStudyTable()
                 " studyId      TEXT"
                 ");"
                 ) && EXEC_QUERY(query);
+    qDebug()<<"retVal study"<<retVal;
+
+    return retVal;
 }
 
 bool medDatabaseController::createSeriesTable()
 {
     QSqlQuery query(this->database());
 
-    query.prepare(
+    bool retVal = query.prepare(
                 "CREATE TABLE IF NOT EXISTS series ("
-                " id       INTEGER      PRIMARY KEY,"
+                "id INTEGER AUTO_INCREMENT PRIMARY KEY,"
+//                " id       INTEGER      PRIMARY KEY,"
                 " study    INTEGER," // FOREIGN KEY
                 " size     INTEGER,"
                 " name            TEXT,"
@@ -436,8 +447,8 @@ bool medDatabaseController::createSeriesTable()
                 " seriesNumber    TEXT,"
                 " sequenceName    TEXT,"
                 " sliceThickness  TEXT,"
-                " rows            TEXT,"
-                " columns         TEXT,"
+                " `rows`            TEXT,"
+                " `columns`         TEXT,"
                 " thumbnail       TEXT,"
                 " age             TEXT,"
                 " description     TEXT,"
@@ -458,21 +469,25 @@ bool medDatabaseController::createSeriesTable()
                 " acquisitionTime TEXT"
                 ");"
                 ) && EXEC_QUERY(query);
+       qDebug()<<"retVal "<<retVal;
+       qDebug()<<"ee "<<        query.lastError()
+;
 
-    // Get all the information about the table columns
-    query.prepare("PRAGMA table_info(series)");
-    if ( !EXEC_QUERY(query) )
-    {
-        qDebug() << DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
-    }
+       return retVal;
+//    // Get all the information about the table columns
+//    query.prepare("PRAGMA table_info(series)");
+//    if ( !EXEC_QUERY(query) )
+//    {
+//        qDebug() << DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
+//    }
 
-    this->addTextColumnToSeriesTableIfNeeded(query, "origin");
-    this->addTextColumnToSeriesTableIfNeeded(query, "flipAngle");
-    this->addTextColumnToSeriesTableIfNeeded(query, "echoTime");
-    this->addTextColumnToSeriesTableIfNeeded(query, "repetitionTime");
-    this->addTextColumnToSeriesTableIfNeeded(query, "acquisitionTime");
+//    this->addTextColumnToSeriesTableIfNeeded(query, "origin");
+//    this->addTextColumnToSeriesTableIfNeeded(query, "flipAngle");
+//    this->addTextColumnToSeriesTableIfNeeded(query, "echoTime");
+//    this->addTextColumnToSeriesTableIfNeeded(query, "repetitionTime");
+//    this->addTextColumnToSeriesTableIfNeeded(query, "acquisitionTime");
 
-    return true;
+//    return true;
 }
 
 void medDatabaseController::addTextColumnToSeriesTableIfNeeded(QSqlQuery query, QString columnName)

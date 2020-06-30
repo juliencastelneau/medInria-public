@@ -65,7 +65,7 @@ QString medDatabaseImporter::getPatientID(QString patientName, QString birthDate
 
     if ( !query.exec() )
     {
-        dtkDebug() << DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
+        dtkDebug() <<  "555 "<<DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
     }
 
     if ( query.first() )
@@ -120,7 +120,7 @@ int medDatabaseImporter::getOrCreatePatient ( const medAbstractData* medData, QS
 
     if ( !query.exec() )
     {
-        qDebug() << DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
+        qDebug() << "111 "<<DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
     }
 
     if ( query.first() )
@@ -225,7 +225,7 @@ int medDatabaseImporter::getOrCreateSeries ( const medAbstractData* medData, QSq
     if( seriesName=="EmptySeries" )
         return seriesDbId;
 
-    query.prepare ( "SELECT * FROM series WHERE study = :study AND name = :seriesName AND uid = :seriesUid AND orientation = :orientation AND seriesNumber = :seriesNumber AND sequenceName = :sequenceName AND sliceThickness = :sliceThickness AND rows = :rows AND columns = :columns" );
+    query.prepare ( "SELECT * FROM series WHERE study = :study AND name = :seriesName AND uid = :seriesUid AND orientation = :orientation AND seriesNumber = :seriesNumber AND sequenceName = :sequenceName AND sliceThickness = :sliceThickness AND `rows` = :rows AND `columns` = :columns" );
     query.bindValue ( ":study", studyDbId );
     query.bindValue ( ":seriesName", seriesName );
     query.bindValue ( ":seriesUid", seriesUid );
@@ -241,7 +241,7 @@ int medDatabaseImporter::getOrCreateSeries ( const medAbstractData* medData, QSq
 
     if ( !query.exec() )
     {
-        qDebug() << DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
+        qDebug() <<  "222 "<<DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
     }
 
     if ( query.first() )
@@ -280,7 +280,7 @@ int medDatabaseImporter::getOrCreateSeries ( const medAbstractData* medData, QSq
         QString acquisitionTime = medMetaDataKeys::AcquisitionTime.getFirstValue(medData);
 
         query.prepare ( "INSERT INTO series (study, seriesId, size, name, path, uid, "
-                        "orientation, seriesNumber, sequenceName, sliceThickness, rows, columns, "
+                        "orientation, seriesNumber, sequenceName, sliceThickness, `rows`, `columns`, "
                         "thumbnail, age, description, modality, protocol, comments, "
                         "status, acquisitiondate, importationdate, referee, performer, institution, report, "
                         "origin, flipAngle, echoTime, repetitionTime, acquisitionTime) "
@@ -323,7 +323,7 @@ int medDatabaseImporter::getOrCreateSeries ( const medAbstractData* medData, QSq
 
         if ( !query.exec() )
         {
-            qDebug() << DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
+            qDebug() <<  "333 "<<DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
         }
 
         seriesDbId = query.lastInsertId().toInt();
@@ -349,7 +349,7 @@ QString medDatabaseImporter::ensureUniqueSeriesName ( const QString seriesName )
 
     if ( !query.exec() )
     {
-        dtkDebug() << DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
+        dtkDebug() << "444 "<< DTK_COLOR_FG_RED << query.lastError() << DTK_NO_COLOR;
     }
 
     QStringList seriesNames;
