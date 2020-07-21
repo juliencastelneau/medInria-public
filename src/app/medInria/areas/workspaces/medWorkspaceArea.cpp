@@ -35,7 +35,6 @@
 #include <medViewContainer.h>
 
 #include <medDatabaseNonPersistentController.h>
-#include <medDatabaseController.h>
 
 #include <medToolBox.h>
 #include <medToolBoxContainer.h>

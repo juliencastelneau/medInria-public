@@ -17,6 +17,7 @@
 #include <QPixmap>
 #include <QUuid>
 
+#include <medAbstractPersistentDbController.h>
 #include <medCoreLegacyExport.h>
 #include <medDatabaseExporter.h>
 #include <medDataIndex.h>
@@ -31,7 +32,6 @@ class MEDCORELEGACY_EXPORT medDataManager : public QObject
     Q_OBJECT
 
 public:
-    static void initialize();
     static medDataManager * instance();
 
     medAbstractData* retrieveData(const medDataIndex& index);
@@ -63,7 +63,10 @@ public:
     // ------------------------- Compatibility code, to be removed -----------
 
     medAbstractDbController* controllerForDataSource(int dataSourceId);
+    medAbstractPersistentDbController* controller();
 
+    void setDatabaseLocation();
+    
 signals:
     void metadataModified(const medDataIndex& index, const QString& key = "", const QString& value = "");
     void dataImported(const medDataIndex& index, QUuid importId);
