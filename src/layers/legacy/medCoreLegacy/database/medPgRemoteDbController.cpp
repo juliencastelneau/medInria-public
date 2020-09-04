@@ -11,7 +11,7 @@
 
 =========================================================================*/
 
-#include "medDatabaseController.h"
+#include "medPgRemoteDbController.h"
 #include "medDatabaseImporter.h"
 #include "medDatabaseReader.h"
 #include "medDatabaseRemover.h"
@@ -20,7 +20,7 @@
 #include <medJobManagerL.h>
 #include <medMessageController.h>
 
-class medDatabaseControllerPrivate
+class medLocalDbControllerPrivate
 {
 public:
     void buildMetaDataLookup();
@@ -41,11 +41,11 @@ public:
     static const QString T_patient ;
 };
 
-const QString medDatabaseControllerPrivate::T_series = "series";
-const QString medDatabaseControllerPrivate::T_study = "study";
-const QString medDatabaseControllerPrivate::T_patient = "patient";
+const QString medLocalDbControllerPrivate::T_series = "series";
+const QString medLocalDbControllerPrivate::T_study = "study";
+const QString medLocalDbControllerPrivate::T_patient = "patient";
 
-void medDatabaseControllerPrivate::buildMetaDataLookup()
+void medLocalDbControllerPrivate::buildMetaDataLookup()
 {
 // The table defines the mapping between metadata in the medAbstractData and the database tables.
     metaDataLookup.insert(medMetaDataKeys::ThumbnailPath.key(),
@@ -75,8 +75,6 @@ void medDatabaseControllerPrivate::buildMetaDataLookup()
         TableEntryList() << TableEntry(T_series, "size") );
     metaDataLookup.insert(medMetaDataKeys::SeriesDescription.key(),
         TableEntryList() << TableEntry(T_series, "name") );
-    metaDataLookup.insert(medMetaDataKeys::Size.key(),
-        TableEntryList() << TableEntry(T_series, "size") );
     metaDataLookup.insert(medMetaDataKeys::SeriesInstanceUID.key(),
         TableEntryList() << TableEntry(T_series, "uid") );
     metaDataLookup.insert(medMetaDataKeys::SeriesID.key(),
@@ -129,22 +127,22 @@ void medDatabaseControllerPrivate::buildMetaDataLookup()
         TableEntryList() << TableEntry(T_series, "acquisitionTime") );
 }
 
-medDatabaseController * medDatabaseController::s_instance = NULL;
+medPgRemoteDbController * medPgRemoteDbController::s_instance = NULL;
 
-medDatabaseController* medDatabaseController::instance() {
+medPgRemoteDbController* medPgRemoteDbController::instance() {
     if ( ! s_instance) {
-        s_instance = new medDatabaseController();
+        s_instance = new medPgRemoteDbController();
     }
     return s_instance;
 }
 
 
-const QSqlDatabase& medDatabaseController::database(void) const
+const QSqlDatabase& medPgRemoteDbController::database(void) const
 {
     return m_database;
 }
 
-bool medDatabaseController::createConnection(void)
+bool medPgRemoteDbController::createConnection(void)
 {
     medStorage::mkpath(medStorage::dataLocation() + "/");
 
@@ -188,7 +186,7 @@ bool medDatabaseController::createConnection(void)
     return true;
 }
 
-bool medDatabaseController::closeConnection(void)
+bool medPgRemoteDbController::closeConnection(void)
 {
     m_database.close();
     QSqlDatabase::removeDatabase("QSQLITE");
@@ -197,7 +195,7 @@ bool medDatabaseController::closeConnection(void)
 }
 
 /** create dataIndices out of partial ids */
-medDataIndex medDatabaseController::indexForPatient(int id)
+medDataIndex medPgRemoteDbController::indexForPatient(int id)
 {
     return medDataIndex::makePatientIndex(this->dataSourceId(), id);
 }
@@ -205,7 +203,7 @@ medDataIndex medDatabaseController::indexForPatient(int id)
 /**
 * Returns the index of a data given patient, study, and series name
 */
-medDataIndex medDatabaseController::indexForPatient (const QString &patientName)
+medDataIndex medPgRemoteDbController::indexForPatient (const QString &patientName)
 {
     QSqlQuery query(m_database);
     QVariant patientId = -1;
@@ -226,7 +224,7 @@ medDataIndex medDatabaseController::indexForPatient (const QString &patientName)
     return medDataIndex();
 }
 
-medDataIndex medDatabaseController::indexForStudy(int id)
+medDataIndex medPgRemoteDbController::indexForStudy(int id)
 {
     QSqlQuery query(m_database);
 
@@ -246,7 +244,7 @@ medDataIndex medDatabaseController::indexForStudy(int id)
     return medDataIndex::makeStudyIndex(this->dataSourceId(), patientId.toInt(), id);
 }
 
-medDataIndex medDatabaseController::indexForStudy(const QString &patientName, const QString &studyName)
+medDataIndex medPgRemoteDbController::indexForStudy(const QString &patientName, const QString &studyName)
 {
     medDataIndex index = this->indexForPatient(patientName);
     if (!index.isValid())
@@ -275,7 +273,7 @@ medDataIndex medDatabaseController::indexForStudy(const QString &patientName, co
     return medDataIndex();
 }
 
-medDataIndex medDatabaseController::indexForSeries(int id)
+medDataIndex medPgRemoteDbController::indexForSeries(int id)
 {
     QSqlQuery query(m_database);
 
@@ -307,7 +305,7 @@ medDataIndex medDatabaseController::indexForSeries(int id)
     return medDataIndex::makeSeriesIndex(this->dataSourceId(), patientId.toInt(), studyId.toInt(), id);
 }
 
-medDataIndex medDatabaseController::indexForSeries(const QString &patientName, const QString &studyName,
+medDataIndex medPgRemoteDbController::indexForSeries(const QString &patientName, const QString &studyName,
                                                        const QString &seriesName)
 {
     medDataIndex index = this->indexForStudy(patientName, studyName);
@@ -336,7 +334,7 @@ medDataIndex medDatabaseController::indexForSeries(const QString &patientName, c
     return medDataIndex();
 }
 
-bool medDatabaseController::createPatientTable()
+bool medPgRemoteDbController::createPatientTable()
 {
     QSqlQuery query(m_database);
 
@@ -356,7 +354,7 @@ bool medDatabaseController::createPatientTable()
     return EXEC_QUERY(query);
 }
 
-bool medDatabaseController::createStudyTable()
+bool medPgRemoteDbController::createStudyTable()
 {
     QSqlQuery query(m_database);
 
@@ -372,7 +370,7 @@ bool medDatabaseController::createStudyTable()
                 ) && EXEC_QUERY(query);
 }
 
-bool medDatabaseController::createSeriesTable()
+bool medPgRemoteDbController::createSeriesTable()
 {
     QSqlQuery query(m_database);
 
@@ -428,7 +426,7 @@ bool medDatabaseController::createSeriesTable()
     return true;
 }
 
-void medDatabaseController::addTextColumnToSeriesTableIfNeeded(QSqlQuery query, QString columnName)
+void medPgRemoteDbController::addTextColumnToSeriesTableIfNeeded(QSqlQuery query, QString columnName)
 {
     bool isColumnThere = false;
     query.first();
@@ -449,7 +447,7 @@ void medDatabaseController::addTextColumnToSeriesTableIfNeeded(QSqlQuery query, 
     }
 }
 
-bool medDatabaseController::updateFromNoVersionToVersion1()
+bool medPgRemoteDbController::updateFromNoVersionToVersion1()
 {
     // Updates the DB schema from the original, un-versioned schema, to the
     // version 1 schema:
@@ -465,14 +463,14 @@ bool medDatabaseController::updateFromNoVersionToVersion1()
 
     if ( ! (q.exec("PRAGMA user_version") && q.first()))
     {
-        qWarning("medDatabaseController: Testing DB version for upgrade failed.");
+        qWarning("medPgRemoteDbController: Testing DB version for upgrade failed.");
         qDebug() << q.lastError();
         return false;
     }
 
     if ( ! q.exec("BEGIN EXCLUSIVE TRANSACTION"))
     {
-        qWarning("medDatabaseController: Could not begin transaction.");
+        qWarning("medPgRemoteDbController: Could not begin transaction.");
         qDebug() << q.lastError();
         return false;
     }
@@ -480,7 +478,7 @@ bool medDatabaseController::updateFromNoVersionToVersion1()
     // Test for isIndexed column to series
     if ( ! (q.exec("SELECT sql FROM sqlite_master WHERE type=='table' AND tbl_name=='series'") && q.first()))
     {
-        qWarning("medDatabaseController: Could not test for `isIndexed` column in table `series`.");
+        qWarning("medPgRemoteDbController: Could not test for `isIndexed` column in table `series`.");
         qDebug() << q.lastError();
         return false;
     }
@@ -492,7 +490,7 @@ bool medDatabaseController::updateFromNoVersionToVersion1()
         // Add isIndexed column if missing
         if ( ! q.exec("ALTER TABLE series ADD COLUMN isIndexed BOOLEAN"))
         {
-            qWarning("medDatabaseController: Could not add `isIndexed` column to table `series`.");
+            qWarning("medPgRemoteDbController: Could not add `isIndexed` column to table `series`.");
             qDebug() << q.lastError();
             return false;
         }
@@ -505,7 +503,7 @@ bool medDatabaseController::updateFromNoVersionToVersion1()
         // Migrate path and isIndexed fields from table `image` to `series`
         if ( ! q.exec("SELECT id,path FROM image WHERE isIndexed == 'true'"))
         {
-            qWarning("medDatabaseController: getting a list of path from the `image` table failed.");
+            qWarning("medPgRemoteDbController: getting a list of path from the `image` table failed.");
             qDebug() << q.lastError();
             return false;
         }
@@ -521,7 +519,7 @@ bool medDatabaseController::updateFromNoVersionToVersion1()
             q.bindValue(":seriesId", id);
             if (! q.exec())
             {
-                qWarning("medDatabaseController: updating the `series` table failed for id %d.", id);
+                qWarning("medPgRemoteDbController: updating the `series` table failed for id %d.", id);
                 qDebug() << q.lastError();
                 return false;
             }
@@ -530,7 +528,7 @@ bool medDatabaseController::updateFromNoVersionToVersion1()
         // Delete table `image`
         if ( ! q.exec("DROP TABLE image"))
         {
-            qWarning("medDatabaseController: could not drop table `image`.");
+            qWarning("medPgRemoteDbController: could not drop table `image`.");
             qDebug() << q.lastError();
             return false;
         }
@@ -539,14 +537,14 @@ bool medDatabaseController::updateFromNoVersionToVersion1()
     // finally, update DB version
     if ( ! q.exec("PRAGMA user_version = 1"))
     {
-        qWarning("medDatabaseController: updating DB version to 1 after upgrade failed.");
+        qWarning("medPgRemoteDbController: updating DB version to 1 after upgrade failed.");
         qDebug() << q.lastError();
         return false;
     }
 
     if ( ! q.exec("END TRANSACTION"))
     {
-        qWarning("medDatabaseController: Could not end transaction.");
+        qWarning("medPgRemoteDbController: Could not end transaction.");
         qDebug() << q.lastError();
         return false;
     }
@@ -557,18 +555,18 @@ bool medDatabaseController::updateFromNoVersionToVersion1()
 * Status of connection
 * @return bool true on success
 */
-bool medDatabaseController::isConnected() const
+bool medPgRemoteDbController::isConnected() const
 {
     return d->isConnected;
 }
 
-medDatabaseController::medDatabaseController() : d(new medDatabaseControllerPrivate)
+medPgRemoteDbController::medPgRemoteDbController() : d(new medLocalDbControllerPrivate)
 {
     d->buildMetaDataLookup();
     d->isConnected = false;
 }
 
-medDatabaseController::~medDatabaseController()
+medPgRemoteDbController::~medPgRemoteDbController()
 {
     delete d;
 }
@@ -578,7 +576,7 @@ medDatabaseController::~medDatabaseController()
  * @param const medDataIndex & indexStudy The data index of the study to be moved
  * @param const medDataIndex & toPatient The data index to move the study to.
  */
-QList<medDataIndex> medDatabaseController::moveStudy( const medDataIndex& indexStudy, const medDataIndex& toPatient)
+QList<medDataIndex> medPgRemoteDbController::moveStudy( const medDataIndex& indexStudy, const medDataIndex& toPatient)
 {
     QSqlQuery query(m_database);
 
@@ -625,7 +623,7 @@ QList<medDataIndex> medDatabaseController::moveStudy( const medDataIndex& indexS
  * @param const medDataIndex & indexSeries The data index of the series to be moved
  * @param const medDataIndex & toStudy The data index to move the series to.
  */
-medDataIndex medDatabaseController::moveSeries( const medDataIndex& indexSeries, const medDataIndex& toStudy)
+medDataIndex medPgRemoteDbController::moveSeries( const medDataIndex& indexSeries, const medDataIndex& toStudy)
 {
     QSqlQuery query(m_database);
 
@@ -655,10 +653,10 @@ medDataIndex medDatabaseController::moveSeries( const medDataIndex& indexSeries,
 }
 
 /** Get metadata for specific item. Return uninitialized string if not present. */
-QString medDatabaseController::metaData(const medDataIndex& index,const QString& key) const
+QString medPgRemoteDbController::metaData(const medDataIndex& index,const QString& key) const
 {
-    typedef medDatabaseControllerPrivate::MetaDataMap MetaDataMap;
-    typedef medDatabaseControllerPrivate::TableEntryList TableEntryList;
+    typedef medLocalDbControllerPrivate::MetaDataMap MetaDataMap;
+    typedef medLocalDbControllerPrivate::TableEntryList TableEntryList;
 
     QSqlQuery query(m_database);
 
@@ -712,10 +710,10 @@ QString medDatabaseController::metaData(const medDataIndex& index,const QString&
 }
 
 /** Set metadata for specific item. Return true on success, false otherwise. */
-bool medDatabaseController::setMetaData( const medDataIndex& index, const QString& key, const QString& value )
+bool medPgRemoteDbController::setMetaData( const medDataIndex& index, const QString& key, const QString& value )
 {
-    typedef medDatabaseControllerPrivate::MetaDataMap MetaDataMap;
-    typedef medDatabaseControllerPrivate::TableEntryList TableEntryList;
+    typedef medLocalDbControllerPrivate::MetaDataMap MetaDataMap;
+    typedef medLocalDbControllerPrivate::TableEntryList TableEntryList;
 
     QSqlQuery query(m_database);
 
@@ -764,7 +762,7 @@ bool medDatabaseController::setMetaData( const medDataIndex& index, const QStrin
 }
 
 /** Enumerate all patients stored in this DB*/
-QList<medDataIndex> medDatabaseController::patients() const
+QList<medDataIndex> medPgRemoteDbController::patients() const
 {
     QList<medDataIndex> ret;
     QSqlQuery query(m_database);
@@ -780,7 +778,7 @@ QList<medDataIndex> medDatabaseController::patients() const
 }
 
 /** Enumerate all studies for given patient*/
-QList<medDataIndex> medDatabaseController::studies( const medDataIndex& index ) const
+QList<medDataIndex> medPgRemoteDbController::studies( const medDataIndex& index ) const
 {
     QList<medDataIndex> ret;
 
@@ -804,7 +802,7 @@ QList<medDataIndex> medDatabaseController::studies( const medDataIndex& index ) 
 }
 
 /** Enumerate all series for given study*/
-QList<medDataIndex> medDatabaseController::series( const medDataIndex& index) const
+QList<medDataIndex> medPgRemoteDbController::series( const medDataIndex& index) const
 {
     QList<medDataIndex> ret;
 
@@ -827,7 +825,7 @@ QList<medDataIndex> medDatabaseController::series( const medDataIndex& index) co
     return ret;
 }
 
-bool medDatabaseController::execQuery(QSqlQuery& query, const char* file, int line) const
+bool medPgRemoteDbController::execQuery(QSqlQuery& query, const char* file, int line) const
 {
     if (!query.exec())
     {
@@ -840,7 +838,7 @@ bool medDatabaseController::execQuery(QSqlQuery& query, const char* file, int li
 }
 
 /** Remove / replace characters to transform into a pathname component. */
-QString medDatabaseController::stringForPath( const QString & name ) const
+QString medPgRemoteDbController::stringForPath( const QString & name ) const
 {
     QString ret = name.simplified();
     ret.replace(0x00EA, 'e');
@@ -848,7 +846,7 @@ QString medDatabaseController::stringForPath( const QString & name ) const
     return ret;
 }
 
-bool medDatabaseController::contains(const medDataIndex &index) const
+bool medPgRemoteDbController::contains(const medDataIndex &index) const
 {
     if (index.isValid() && index.dataSourceId() == dataSourceId())
     {
