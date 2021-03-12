@@ -19,6 +19,7 @@
 #include <QtPlatformHeaders/QWindowsWindowFunctions>
 #endif
 
+#include <computerInfo.h>
 #include <dtkCoreSupport/dtkGlobal.h>
 #include <medApplication.h>
 #include <medDataIndex.h>
@@ -293,6 +294,9 @@ int main(int argc, char *argv[])
         application.setMainWindow(mainwindow);
 
         forceShow(*mainwindow);
+
+        QTimer timer;
+        medComputerInfo::startNotifier(timer);
 
         qInfo() << "### Application is running...";
 

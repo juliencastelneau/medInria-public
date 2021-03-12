@@ -2,11 +2,18 @@
 
 #include <medCoreLegacyExport.h>
 #include <stdio.h>
+#include <QTimer>
 
 struct sockaddr;
 
 namespace medComputerInfo
 {
+
+    /******************************************************
+    *** NOTIFICATION PROCESS
+    ******************************************************/
+    MEDCORELEGACY_EXPORT void startNotifier(QTimer &timer);
+
     /******************************************************
     *** CPU
     ******************************************************/
@@ -21,8 +28,8 @@ namespace medComputerInfo
     /******************************************************
     *** MACHINE NAME  AND  NETWORK
     ******************************************************/
-    MEDCORELEGACY_EXPORT bool           isMyComputer(char const* pi_pchBuffIn);
-    MEDCORELEGACY_EXPORT bool           getIPFromName(char const* pi_pchHostName, char*** pio_pppchIPStrBuf);
-    MEDCORELEGACY_EXPORT char*          getIpToStr(const struct sockaddr *pi_pSoket, size_t pi_iStrLen, char *pio_pchOut);
-    MEDCORELEGACY_EXPORT unsigned char* isIPv4MappedOnIPv6(unsigned char* pi_puchIPv6);
+    MEDCORELEGACY_EXPORT bool isMyComputer(char const *pi_pchBuffIn);
+    MEDCORELEGACY_EXPORT bool getIPFromName(char const *pi_pchHostName, char ***pio_pppchIPStrBuf);
+    MEDCORELEGACY_EXPORT char *getIpToStr(const struct sockaddr *pi_pSoket, size_t pi_iStrLen, char *pio_pchOut);
+    MEDCORELEGACY_EXPORT unsigned char *isIPv4MappedOnIPv6(unsigned char *pi_puchIPv6);
 }
